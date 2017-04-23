@@ -1,0 +1,50 @@
+version: '3'
+
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:5.3.1
+    environment:
+      cluster.name: "playground"
+      node.name: "Docker_1"
+      bootstrap.memory_lock: "true"
+      ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+      path.repo: "['/var/tmp/es_backups']"
+      xpack.security.enabled: "false"
+      xpack.monitoring.enabled: "false"
+      xpack.graph.enabled: "false"
+      xpack.watcher.enabled: "false"
+      http.bind_host: "0.0.0.0"
+      http.publish_host: "127.0.0.1"
+      transport.host: "127.0.0.1"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+#    mem_limit: 1g
+    ports:
+      - 9200:9200
+      - 9300:9300
+    networks:
+      - esnet
+  kibana:
+    image: docker.elastic.co/kibana/kibana:5.3.1
+    ports:
+      - 5601:5601
+    environment:
+      ELASTICSEARCH_URL: http://172.19.0.2:9200
+    networks:
+      - esnet
+    depends_on:
+      - elasticsearch
+
+networks:
+  esnet:
+    driver: bridge
+#    ipam:
+#      driver: default
+#      config:
+#        - subnet: 172.20.0.0/16
+#          gateway: 172.20.0.1
