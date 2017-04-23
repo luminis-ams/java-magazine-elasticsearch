@@ -15,7 +15,6 @@ import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.index.query.QueryBuilder;
 import org.elasticsearch.search.SearchHit;
-import org.elasticsearch.search.aggregations.Aggregation;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 
 import java.io.IOException;
@@ -26,7 +25,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
@@ -184,6 +182,23 @@ public class ArticleRepository {
     }
 
     /**
+     * Returns all articles available from the provided author.
+     *
+     * @param author String containing the issue to find articles for
+     * @return List of Articles from the specified issue.
+     */
+    public List<Article> findAllArticlesForAuthor(String author) {
+        SearchResponse searchResponse = client.prepareSearch(INDEX_BASE)
+                .setQuery(termsQuery("author", author))
+                .get();
+        SearchHit[] hits = searchResponse.getHits().hits();
+
+        return Arrays.stream(hits)
+                .map(this::parseHitIntoArticle)
+                .collect(Collectors.toCollection(ArrayList::new));
+    }
+
+    /**
      * Returns all found articles filtered by the provided issue and searched using the searchString.
      *
      * @param issue        String containing the issue to filter by
@@ -212,7 +227,36 @@ public class ArticleRepository {
     }
 
     /**
+     * Returns all found articles filtered by the provided author and searched using the searchString.
+     *
+     * @param author       String containing the author to filter by
+     * @param searchString String containing the string to search for
+     * @return List of found Articles
+     */
+    public List<Article> searchAndFilterAuthorArticlesBy(String author, String searchString) {
+        if (author == null || author.isEmpty()) {
+            return searchArticlesBy(searchString);
+        }
+        if (searchString == null || searchString.isEmpty()) {
+            return findAllArticlesForAuthor(author);
+        }
+
+        QueryBuilder queryBuilder = boolQuery()
+                .must(multiMatchQuery(searchString, "description", "title"))
+                .filter(termsQuery("author", author));
+
+        SearchResponse searchResponse = client.prepareSearch(INDEX_BASE).setQuery(queryBuilder).get();
+        SearchHit[] hits = searchResponse.getHits().hits();
+
+        return Arrays.stream(hits)
+                .map(this::parseHitIntoArticle)
+                .collect(Collectors.toCollection(ArrayList::new));
+    }
+
+
+    /**
      * Returns all found Issues and the the amount of articles in each issue.
+     *
      * @return Map with the issue as a key and the number of articles as a value
      */
     public Map<String, Long> findIssues() {
@@ -232,6 +276,7 @@ public class ArticleRepository {
 
     /**
      * Returns all found authors and the amount of articles each author has written.
+     *
      * @return Map with the author as a key and the number of articles as a value
      */
     public Map<String, Long> findAuthors() {

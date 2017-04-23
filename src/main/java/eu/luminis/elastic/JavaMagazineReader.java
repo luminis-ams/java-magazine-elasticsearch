@@ -6,7 +6,6 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -26,12 +25,13 @@ public class JavaMagazineReader {
 
     /**
      * Obtain all articles extracted from the provided page number.
+     *
      * @param page represents the number of the page to extract articles from
      * @return List containing the found articles
      * @throws IOException Thrown when reading or parsing the page went wrong
      */
     public List<Article> startReading(int page) throws IOException {
-        Document doc = Jsoup.connect("http://www.nljug.org/databasejava/?page="+page).get();
+        Document doc = Jsoup.connect("http://www.nljug.org/databasejava/?page=" + page).get();
         Elements articlesElement = doc.select("li.databasejava");
 
         List<Article> articles = articlesElement.stream().map(element -> {
@@ -51,10 +51,10 @@ public class JavaMagazineReader {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMMM yyyy", NL);
 
 
-            LocalDate localDate = LocalDate.parse(time, DateTimeFormatter.ofPattern("dd MMMM yyyy",NL));
+            LocalDate localDate = LocalDate.parse(time, DateTimeFormatter.ofPattern("dd MMMM yyyy", NL));
             Date postDate = Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
 
-            String description = element.getElementsByAttributeValue("itemprop","description").first().text();
+            String description = element.getElementsByAttributeValue("itemprop", "description").first().text();
 
 
             return new Article().setTitle(title).setAuthor(author).setIssue(issue).setPostDate(postDate).setLink(link).setDescription(description);
@@ -82,7 +82,7 @@ public class JavaMagazineReader {
         int numPages = 23;
         JavaMagazineReader reader = new JavaMagazineReader();
 
-        for(int page=1; page <= numPages; page++) {
+        for (int page = 1; page <= numPages; page++) {
             System.out.println("Start page " + page);
             List<Article> articles = reader.startReading(page);
             articles.forEach(articleRepository::indexArticle);

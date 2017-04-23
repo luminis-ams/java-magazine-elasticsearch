@@ -80,6 +80,34 @@ public class ArticleRepositoryTest extends ElasticTestCase {
     }
 
     @Test
+    public void checkFindAllByAuthor() {
+        List<Article> articles = articleRepository.findAllArticlesForAuthor("Author 1");
+
+        assertEquals(2, articles.size());
+
+        articles = articleRepository.findAllArticlesForAuthor("author_nonexistent");
+
+        assertEquals(0, articles.size());
+
+    }
+
+    @Test
+    public void checkFindAllByAuthorAndSearchString() {
+        List<Article> articles = articleRepository.searchAndFilterAuthorArticlesBy("Author 1", "Bob");
+
+        assertEquals(1, articles.size());
+
+        articles = articleRepository.searchAndFilterAuthorArticlesBy("author_nonexistent", "description");
+
+        assertEquals(0, articles.size());
+
+        articles = articleRepository.searchAndFilterAuthorArticlesBy("Author 1", "dontknow");
+
+        assertEquals(0, articles.size());
+
+    }
+
+    @Test
     public void checkCreateArticle() {
         SearchResponse searchResponse = client().prepareSearch("articles").get();
         assertEquals(5, searchResponse.getHits().getTotalHits());
