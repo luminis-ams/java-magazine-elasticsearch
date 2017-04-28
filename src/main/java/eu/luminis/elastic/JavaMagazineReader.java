@@ -15,13 +15,14 @@ import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
+import static eu.luminis.elastic.Constants.CLUSTER_NAME;
+import static eu.luminis.elastic.Constants.HOSTS;
+
 /**
  * Responsibility for this class is to read the Java Magazine Articles.
  */
 public class JavaMagazineReader {
     private final static Locale NL = Locale.forLanguageTag("nl-NL");
-    public static final String CLUSTER_NAME = "playground";
-    public static final String HOSTS = "localhost:9300";
 
     /**
      * Obtain all articles extracted from the provided page number.
@@ -51,7 +52,7 @@ public class JavaMagazineReader {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMMM yyyy", NL);
 
 
-            LocalDate localDate = LocalDate.parse(time, DateTimeFormatter.ofPattern("dd MMMM yyyy", NL));
+            LocalDate localDate = LocalDate.parse(time, formatter);
             Date postDate = Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
 
             String description = element.getElementsByAttributeValue("itemprop", "description").first().text();

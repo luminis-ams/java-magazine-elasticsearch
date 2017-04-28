@@ -22,10 +22,9 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
@@ -266,7 +265,7 @@ public class ArticleRepository {
                 .get();
 
         Terms issues = searchResponse.getAggregations().get("issues");
-        Map<String, Long> foundIssues = new HashMap<>();
+        Map<String, Long> foundIssues = new LinkedHashMap<>();
         issues.getBuckets().forEach(bucket -> {
             foundIssues.put(bucket.getKeyAsString(), bucket.getDocCount());
         });
@@ -286,7 +285,7 @@ public class ArticleRepository {
                 .get();
 
         Terms issues = searchResponse.getAggregations().get("authors");
-        Map<String, Long> foundAuthors = new TreeMap<>();
+        Map<String, Long> foundAuthors = new LinkedHashMap<>();
 
         issues.getBuckets().forEach(bucket -> {
             foundAuthors.put(bucket.getKeyAsString(), bucket.getDocCount());
